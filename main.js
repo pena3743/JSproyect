@@ -35,6 +35,7 @@ if(btnIss) {btnIss.addEventListener('click', stockIssue)};
 if(btnFnd) {btnFnd.addEventListener('click', productStatus)};
 if(funLis) {listProducts()};
 
+/* --------------------------- accesos de teclado --------------------------- */
 if (menuPg){
     document.addEventListener('keydown', (e) => {
         if (e.code === "Numpad1" || e.code === "Digit1") {
@@ -48,7 +49,7 @@ if (menuPg){
         } else if (e.code === "Numpad5" || e.code === "Digit5") {
             location.href = './findProduct.html';
         } else if (e.code === "Numpad6" || e.code === "Digit6") {
-            location.href = './menu.html';
+            location.href = '../index.html';
         }
     });
 };
@@ -57,90 +58,127 @@ if (indexPg) {
         switch(e.code) {
             case "Numpad1":
             case "Digit1":
-                location.href = './login.html';
+                location.href = './pages/logIn.html';
                 break;
             case "Numpad2":
             case "Digit2":
-                location.href = './register.html';
+                location.href = './pages/register.html';
                 break;
             }
         });
     }
 
-/* ------------------------- Crear nuevos productos ------------------------- */
-function createProduct (e) {
-    e.preventDefault();
-    if(e.target.id == 'cre-btn'){
-        const prodCode = document.querySelector('#cre-code').value;
-        const prodObject = JSON.parse(localStorage.getItem('products'));
-        const prodIdx = prodObject.findIndex(prod => prod.code === prodCode);
-        if(prodIdx !=-1) { 
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Codigo de producto ya existente',
-            })
-        } else {
-            const prodDesc = document.querySelector('#cre-desc').value;
-            const prodPrice = document.querySelector('#cre-price').value;
-            const prodStock = document.querySelector('#cre-stock').value;
-            const maxId = prodObject.reduce((prods,item)=> prods = prods > item.id ? prods: item.id,0 )
-            const newProduct = {
-                id: maxId + 1,
-                code: prodCode,
-                description: prodDesc,
-                price: prodPrice,
-                stock: prodStock
-            }
-            prodObject.push(new createProducts(newProduct));
-            localStorage.setItem('products', JSON.stringify(prodObject));
-            const item = document.createElement('ul');
-            item.innerHTML = `
-            <ul class="container fs-4">Producto <strong>${newProduct.code}</strong> creado:
-                <li class="fs-5"><strong>Descripcion: ${newProduct.description}</strong></li>
-                <li class="fs-5"><strong>Precio: ${newProduct.price}</strong></li>
-                <li class="fs-5"><strong>Stock: ${newProduct.stock}</strong></li>
-                <li class="fs-5"><strong>ID: ${newProduct.id}</strong></li>
-            </ul> 
-            `
-            document.querySelector('.cre-info').replaceChildren(item);
-        }    
-    }     
-}    
+/* ---------------------- buscar usuarios del archivo ---------------------- */
+async function getUsers() {
+    const resp = await fetch('../data/users.json');
+    const userFile = await resp.json() || [];
+    const userLocal = await JSON.parse(localStorage.getItem('users')) || [];
+    return users = userLocal.length > 0 ? userLocal : userFile;
+}
+
+/* ---------------------- buscar productos del archivo ---------------------- */
+async function getProducts() {
+    const resp = await fetch('../data/products.json');
+    const prodFile = await resp.json() || [];
+    const prodLocal = await JSON.parse(localStorage.getItem('products')) || [];
+    return products = prodLocal.length > 0 ? prodLocal : prodFile;
+}
 
 /* ---------------------- listar los productos creados ---------------------- */
-function listProducts () {
-    const prodObject = JSON.parse(localStorage.getItem('products'));
-    prodObject.forEach(product => {
-        const item = document.createElement('ul');
+async function listProducts () {
+    const products = await getProducts();
+    products.forEach(product => {
+        const item = document.createElement('div');
+        item.classList = 'col'
         item.innerHTML = `
-        <ul class="container fs-4">Código: <strong>${product.code}</strong>
-            <li class="fs-5">Descripción: <strong>${product.description}</strong></li>
-            <li class="fs-5">Precio: <strong>${product.price}</strong></li>
-            <li class="fs-5">Stock: <strong>${product.stock}</strong></li>
-            <li class="fs-5">Id: <strong>${product.id}</strong></li>
-        </ul>
+          <div class="card mb-3">
+            <div class="card-body card-bg-color">
+              <h5 class="card-title"><strong>${product.code}</strong></h5>
+              <p class="card-text">Descripción: <strong>${product.description}</strong></p>
+              <p class="card-text">Precio: <strong>${product.price}</strong></p>
+              <p class="card-text">Stock: <strong>${product.stock}</strong></p>
+              <p class="card-text">Id: <strong>${product.id}</strong></p>
+            </div>
+          </div>
+        </div>
         `
         funLis.appendChild(item);
     });
 }    
+    
+
+/* ------------------------- Crear nuevos productos ------------------------- */
+async function createProduct (e) {
+    e.preventDefault();
+    if(e.target.id == 'cre-btn'){
+        const prodCode = document.querySelector('#cre-code').value;
+        if (prodCode) {
+            const products = await getProducts();
+            const prodIdx = products.findIndex(prod => prod.code === prodCode);
+            if(prodIdx !=-1) { 
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Codigo de producto ya existente',
+                })
+            } else {
+                const prodDesc = document.querySelector('#cre-desc').value;
+                const prodPrice = document.querySelector('#cre-price').value;
+                const prodStock = document.querySelector('#cre-stock').value;
+                const maxId = products.reduce((prods,item)=> prods = prods > item.id ? prods: item.id,0 );
+                if (!!prodStock && !!prodPrice && !!prodDesc) {
+                    const newProduct = {
+                        id: maxId + 1,
+                        code: prodCode,
+                        description: prodDesc,
+                        price: prodPrice,
+                        stock: prodStock
+                    }
+                    products.push(new createProducts(newProduct));
+                    localStorage.setItem('products', JSON.stringify(products));
+                    const item = document.createElement('ul');
+                    item.classList = 'container fs-4'
+                    item.innerHTML = `Producto <strong>${newProduct.code}</strong> creado:
+                        <li class="fs-5"><strong>Descripcion: ${newProduct.description}</strong></li>
+                        <li class="fs-5"><strong>Precio: ${newProduct.price}</strong></li>
+                        <li class="fs-5"><strong>Stock: ${newProduct.stock}</strong></li>
+                        <li class="fs-5"><strong>ID: ${newProduct.id}</strong></li>
+                    `
+                    document.querySelector('.cre-info').replaceChildren(item);
+                } else {
+                    mandatoryFields()
+                }   
+            }
+            console.log(products);
+        } else {
+            mandatoryFields()
+        }
+    }     
+}    
+
+function mandatoryFields () {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: `Todos los campos son obligatorios`
+    })
+}
 
 /* -------------------------- consultar un producto ------------------------- */
-function productStatus(e) {
+async function productStatus(e) {
     e.preventDefault();
     if(e.target.id = 'fnd-btn'){
         const prodCode = document.querySelector('#find-code').value
-        const prodObject = JSON.parse(localStorage.getItem('products'));
-        const prodIdx = prodObject.findIndex(prod => prod.code === prodCode);
+        const products = await getProducts();
+        const prodIdx = products.findIndex(prod => prod.code === prodCode);
         if(prodIdx !=-1) { 
             const item = document.createElement('ul');
-            item.innerHTML = `
-            <ul class="container fs-4">Codigo: <strong>${prodObject[prodIdx].code}</strong>
-                <li class="fs-5">Descripcion: <strong>${prodObject[prodIdx].description}</strong></li>
-                <li class="fs-5">Precio: <strong>${prodObject[prodIdx].price}</strong></li>
-                <li class="fs-5">Stock: <strong>${prodObject[prodIdx].stock}</strong></li>
-                <li class="fs-5">ID: <strong>${prodObject[prodIdx].id}</strong></li>
-            </ul> 
+            item.classList = 'container fs-4'
+            item.innerHTML = `Codigo: <strong>${products[prodIdx].code}</strong>
+                <li class="fs-5">Descripcion: <strong>${products[prodIdx].description}</strong></li>
+                <li class="fs-5">Precio: <strong>${products[prodIdx].price}</strong></li>
+                <li class="fs-5">Stock: <strong>${products[prodIdx].stock}</strong></li>
+                <li class="fs-5">ID: <strong>${products[prodIdx].id}</strong></li>
             `
             document.querySelector('.prod-info').replaceChildren(item);
         } else {
@@ -152,25 +190,25 @@ function productStatus(e) {
 }    
 
 /* ---------------------------- Ingreso de stock ---------------------------- */
-function stockReceipt (e) {
+async function stockReceipt (e) {
     e.preventDefault();
     if(e.target.id == 'rcp-btn'){
         const prodCode = document.querySelector('#receipt #rcp-code').value
-        const prodObject = JSON.parse(localStorage.getItem('products'));
+        const products = await getProducts();
         if (prodCode !== null){
-            const prodIdx = prodObject.findIndex(prod => prod.code === prodCode);
+            const prodIdx = products.findIndex(prod => prod.code === prodCode);
             if(prodIdx !=-1) { 
                 let qty = Number(document.querySelector('#receipt #rcp-qty').value);
                 if(qty > 0) {
-                    prodObject[prodIdx].stock = Number(prodObject[prodIdx].stock) + qty;
-                    localStorage.setItem('products', JSON.stringify(prodObject));
+                    products[prodIdx].stock = Number(products[prodIdx].stock) + qty;
+                    localStorage.setItem('products', JSON.stringify(products));
                     const item = document.createElement('ul');
-                    item.innerHTML = `
-                    <ul class="container fs-4">Código: <strong>${prodObject[prodIdx].code}</strong>
-                        <li class="fs-5">Descripción: <strong>${prodObject[prodIdx].description}</strong></li>
-                        <li class="fs-5">Precio: <strong>${prodObject[prodIdx].price}</strong></li>
-                        <li class="fs-5">Stock: <strong>${prodObject[prodIdx].stock}</strong></li>
-                        <li class="fs-5">Id: <strong>${prodObject[prodIdx].id}</strong></li>
+                    item.classList = 'container fs-4'
+                    item.innerHTML = `Código: <strong>${products[prodIdx].code}</strong>
+                        <li class="fs-5">Descripción: <strong>${products[prodIdx].description}</strong></li>
+                        <li class="fs-5">Precio: <strong>${products[prodIdx].price}</strong></li>
+                        <li class="fs-5">Stock: <strong>${products[prodIdx].stock}</strong></li>
+                        <li class="fs-5">Id: <strong>${products[prodIdx].id}</strong></li>
                     </ul>
                     `
                     document.querySelector('.receipt').replaceChildren(item);
@@ -193,25 +231,25 @@ function stockReceipt (e) {
 }
 
 /* ---------------------------- consumo del stock --------------------------- */
-function stockIssue(e) {
+async function stockIssue(e) {
     e.preventDefault();
     if(e.target.id == 'iss-btn'){
         const prodCode = document.querySelector('#issue #iss-code').value
-        const prodObject = JSON.parse(localStorage.getItem('products'));
-        const prodIdx = prodObject.findIndex(prod => prod.code === prodCode);
+        const products = await getProducts();
+        const prodIdx = products.findIndex(prod => prod.code === prodCode);
         if(prodIdx !=-1) {
             let qty = Number(document.querySelector('#issue #iss-qty').value);  
             if(qty > 0) {
-                if (prodObject[prodIdx].stock >= qty) {
-                    prodObject[prodIdx].stock = prodObject[prodIdx].stock - qty;
-                    localStorage.setItem('products', JSON.stringify(prodObject));
+                if (products[prodIdx].stock >= qty) {
+                    products[prodIdx].stock = products[prodIdx].stock - qty;
+                    localStorage.setItem('products', JSON.stringify(products));
                     const item = document.createElement('ul');
-                    item.innerHTML = `
-                    <ul class="container fs-4">Código: <strong>${prodObject[prodIdx].code}</strong>
-                        <li class="fs-5">Descripción: <strong>${prodObject[prodIdx].description}</strong></li>
-                        <li class="fs-5">Precio: <strong>${prodObject[prodIdx].price}</strong></li>
-                        <li class="fs-5">Stock: <strong>${prodObject[prodIdx].stock}</strong></li>
-                        <li class="fs-5">Id: <strong>${prodObject[prodIdx].id}</strong></li>
+                    item.classList = 'container fs-4'
+                    item.innerHTML = `Código: <strong>${products[prodIdx].code}</strong>
+                        <li class="fs-5">Descripción: <strong>${products[prodIdx].description}</strong></li>
+                        <li class="fs-5">Precio: <strong>${products[prodIdx].price}</strong></li>
+                        <li class="fs-5">Stock: <strong>${products[prodIdx].stock}</strong></li>
+                        <li class="fs-5">Id: <strong>${products[prodIdx].id}</strong></li>
                     </ul>
                     `
                     document.querySelector('.issue').replaceChildren(item);
@@ -219,7 +257,7 @@ function stockIssue(e) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        html: `<p>No hay stock suficiente</p><p>Stock disponible: ${prodObject[prodIdx].stock}</p>`,
+                        html: `<p>No hay stock suficiente</p><p>Stock disponible: ${products[prodIdx].stock}</p>`,
                     })
                 }    
             } else {
@@ -240,15 +278,15 @@ function stockIssue(e) {
 }    
 
 /* --------------------------- ingreso de usuario --------------------------- */
-function logIn(e){
+async function logIn(e){
     e.preventDefault();
     if(e.target.id == 'log-btn'){
         const enteredUser = document.querySelector('#login #log-user').value;
-        const userObject = JSON.parse(localStorage.getItem('users'));
-        const userIdx = userObject.findIndex(user => user.user == enteredUser)
+        const users = await getUsers();
+        const userIdx = users.findIndex(user => user.user == enteredUser)
         if(userIdx != -1){
             const enteredPass = document.querySelector('#login #log-pass').value;
-            if(enteredPass === userObject[userIdx].pass){
+            if(enteredPass === users[userIdx].pass){
                 Swal.fire(
                     '¡Bienvenido!',
                     enteredUser,
@@ -274,16 +312,16 @@ function logIn(e){
 }
 
 /* --------------------------- registro de usuario -------------------------- */
-function register(e){
+async function register(e){
     e.preventDefault();
     if(e.target.id == 'reg-btn'){
         const enteredUser = document.querySelector('#register #reg-user').value;
-        const userObject = JSON.parse(localStorage.getItem('users'));
-        const userIdx = userObject.findIndex(user => user.user == enteredUser)
+        const users = await getUsers();
+        const userIdx = users.findIndex(user => user.user == enteredUser)
         if(userIdx === -1){
             const enteredPass = document.querySelector('#register #reg-pass').value;
             const enteredMail = document.querySelector('#register #reg-email').value;
-            const maxId = userObject.reduce((users,usr)=> users = users > usr.id ? users: usr.id,0 )
+            const maxId = users.reduce((users,usr)=> users = users > usr.id ? users: usr.id,0 )
             Swal.fire(
                 '¡Bienvenido!',
                 enteredUser,
@@ -295,8 +333,8 @@ function register(e){
                 mail: enteredMail,
                 pass: enteredPass
             }
-            userObject.push(new createUser(newUser));
-            localStorage.setItem('users', JSON.stringify(userObject));
+            users.push(new createUser(newUser));
+            localStorage.setItem('users', JSON.stringify(users));
         } else {
             Swal.fire({
                 icon: 'error',
