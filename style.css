@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;1,200&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alkatra&family=Poppins:ital,wght@0,100;1,200&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alkatra&family=Montserrat&family=Poppins:ital,wght@0,100;1,200&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat';
+    color: #22577A;
+}
+body {
+    margin-top: 2rem;
+    background-color: rgb(234, 209, 177);
+}
+h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+ul {
+    margin-top: 1rem;
+}
+
+ul, li {
+    margin-left: 2rem;
+}
+.footmenu {
+    padding-left: 0;
+    margin-top: 5rem;
+    margin-left: 0rem;
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    align-content: center;
+}
+.footmenu-item {
+    text-align: center;
+    margin-left: 0rem;
+}
+a {
+    text-decoration: none;   
+}
+a:hover{
+    text-decoration-line: underline;
+}
+.msg{
+    font-size: 2rem;
+    text-align: center;
+}
